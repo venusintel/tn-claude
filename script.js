@@ -22,7 +22,7 @@
     root.setAttribute("data-theme", savedTheme || (prefersDark ? "dark" : "light"));
 
     document.getElementById("theme-toggle").addEventListener("click", function () {
-        const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
         root.setAttribute("data-theme", next);
         storageSet("theme", next);
     });
