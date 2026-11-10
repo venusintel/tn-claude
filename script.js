@@ -18,11 +18,11 @@
     }
 
     const savedTheme = storageGet("theme");
-    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
     root.setAttribute("data-theme", savedTheme || (prefersDark ? "dark" : "light"));
 
     document.getElementById("theme-toggle").addEventListener("click", function () {
-        const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+        const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
         root.setAttribute("data-theme", next);
         storageSet("theme", next);
     });
