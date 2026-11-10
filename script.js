@@ -17,14 +17,41 @@
         try { localStorage.setItem(key, value); } catch (e) { /* ignore */ }
     }
 
-    const savedTheme = storageGet("theme");
-    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
-    root.setAttribute("data-theme", savedTheme || (prefersDark ? "dark" : "light"));
+    /* เริ่มต้นด้วย Light Theme เสมอ เว้นแต่ผู้ใช้เคยกดเลือกธีมมืดไว้เอง */
+    const THEME_KEY = "ts-theme";
+    const savedTheme = storageGet(THEME_KEY);
+    root.setAttribute("data-theme", savedTheme === "dark" ? "dark" : "light");
 
     document.getElementById("theme-toggle").addEventListener("click", function () {
         const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
         root.setAttribute("data-theme", next);
-        storageSet("theme", next);
+        storageSet(THEME_KEY, next);
+    });
+
+    /* ===== Colour accent + step number per card ===== */
+    const ACCENTS = [
+        ["#6366f1", "#a855f7"], /* indigo → purple */
+        ["#0ea5e9", "#22d3ee"], /* sky → cyan */
+        ["#10b981", "#84cc16"], /* emerald → lime */
+        ["#f59e0b", "#f97316"], /* amber → orange */
+        ["#ec4899", "#f43f5e"], /* pink → rose */
+        ["#8b5cf6", "#06b6d4"]  /* violet → cyan */
+    ];
+
+    function pad(n) { return n < 10 ? "0" + n : String(n); }
+
+    cards.forEach(function (card, i) {
+        const pair = ACCENTS[i % ACCENTS.length];
+        card.style.setProperty("--accent", pair[0]);
+        card.style.setProperty("--accent-2", pair[1]);
+
+        const heading = card.querySelector("h3");
+        if (!heading) return;
+        const badge = document.createElement("span");
+        badge.className = "step-num";
+        badge.setAttribute("aria-hidden", "true");
+        badge.textContent = pad(i + 1);
+        heading.insertBefore(badge, heading.firstChild);
     });
 
     /* ===== Toast ===== */
@@ -112,12 +139,22 @@
     cards.forEach(function (card, i) {
         const heading = card.querySelector("h3");
         if (!heading) return;
-        card.id = card.id || slugify(heading.textContent, i);
+        const badge = heading.querySelector(".step-num");
+        const title = Array.from(heading.childNodes)
+            .filter(function (n) { return n !== badge; })
+            .map(function (n) { return n.textContent; })
+            .join("").trim();
+        card.id = card.id || slugify(title, i);
 
         const li = document.createElement("li");
         const a = document.createElement("a");
         a.href = "#" + card.id;
-        a.textContent = heading.textContent;
+        a.style.setProperty("--accent", card.style.getPropertyValue("--accent"));
+        const num = document.createElement("span");
+        num.className = "toc-num";
+        num.textContent = badge ? badge.textContent : pad(i + 1);
+        a.appendChild(num);
+        a.appendChild(document.createTextNode(title));
         li.appendChild(a);
         tocList.appendChild(li);
         tocLinks.set(card, a);
